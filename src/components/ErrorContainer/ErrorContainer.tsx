@@ -7,18 +7,8 @@ import {
   MdOutlineCheckCircleOutline,
 } from "react-icons/md";
 
-export type Error = {
-  message: string;
-  isExpanded: boolean;
-};
-
-interface ErrorContainerProps {
-  error: Error;
-  setError: React.Dispatch<React.SetStateAction<Error>>;
-}
-
 const StyledErrorWrapper = styled.div`
-  z-index: 5;
+  z-index: 1;
 `;
 
 const StyledErrorExpand = styled.button<{ error: boolean }>`
@@ -29,7 +19,8 @@ const StyledErrorExpand = styled.button<{ error: boolean }>`
   border-radius: 0;
   justify-content: space-between;
   align-items: center;
-  color: ${({ theme, error }) => (error ? theme.TEXT_DANGER : theme.TEXT_POSITIVE)};
+  color: ${({ theme, error }) =>
+    error ? theme.TEXT_DANGER : theme.TEXT_POSITIVE};
   pointer-events: ${({ error }) => !error && "none"};
   background: ${({ theme }) => theme.BACKGROUND_SECONDARY};
   box-shadow: 0 1px 0px ${({ theme }) => theme.BACKGROUND_TERTIARY};
@@ -60,36 +51,31 @@ const StyledError = styled.pre`
   white-space: pre-line;
 `;
 
-export const ErrorContainer: React.FC<ErrorContainerProps> = ({
-  error,
-  setError,
-}) => {
+export const ErrorContainer = ({ error }: { error: string }) => {
+  const [isErrorExpanded, setErrorExpanded] = React.useState(true);
+
   return (
     <StyledErrorWrapper>
       <StyledErrorExpand
-        error={!!error.message}
-        onClick={() =>
-          setError((err: Error) => ({ ...err, isExpanded: !err.isExpanded }))
-        }
+        error={!!error.length}
+        onClick={() => setErrorExpanded(!isErrorExpanded)}
       >
         <StyledTitle>
-          {error.message ? (
+          {error ? (
             <MdReportGmailerrorred size={20} />
           ) : (
             <MdOutlineCheckCircleOutline size={20} />
           )}
-          {error.message ? "Error" : "JSON Valid"}
+          {error ? "Error" : "JSON Valid"}
         </StyledTitle>
-        {error.message &&
-          (error.isExpanded ? (
+        {error &&
+          (isErrorExpanded ? (
             <MdExpandLess size={22} />
           ) : (
             <MdExpandMore size={22} />
           ))}
       </StyledErrorExpand>
-      {error.isExpanded && error.message && (
-        <StyledError>{error.message}</StyledError>
-      )}
+      {isErrorExpanded && error && <StyledError>{error}</StyledError>}
     </StyledErrorWrapper>
   );
 };

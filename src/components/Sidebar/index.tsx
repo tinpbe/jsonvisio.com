@@ -4,7 +4,6 @@ import Link from "next/link";
 import styled from "styled-components";
 import { CanvasDirection } from "reaflow";
 import { TiFlowMerge } from "react-icons/ti";
-import { RiPatreonFill } from "react-icons/ri";
 import {
   CgArrowsMergeAltH,
   CgArrowsShrinkH,
@@ -16,15 +15,18 @@ import {
   AiOutlineTwitter,
   AiOutlineSave,
   AiOutlineFileAdd,
+  AiOutlineLink,
 } from "react-icons/ai";
 
 import { Tooltip } from "src/components/Tooltip";
-import { ConfigActionType } from "src/reducer/reducer";
-import { useConfig } from "src/hocs/config";
 import { useRouter } from "next/router";
-import { ImportModal } from "src/containers/ImportModal";
-import { ClearModal } from "src/containers/ClearModal";
+import { ImportModal } from "src/containers/Modals/ImportModal";
+import { ClearModal } from "src/containers/Modals/ClearModal";
+import { ShareModal } from "src/containers/Modals/ShareModal";
 import { IoAlertCircleSharp } from "react-icons/io5";
+import useConfig from "src/hooks/store/useConfig";
+import { getNextLayout } from "src/containers/Editor/LiveEditor/helpers";
+import { HiHeart } from "react-icons/hi";
 
 const StyledSidebar = styled.div`
   display: flex;
@@ -42,7 +44,7 @@ const StyledElement = styled.div<{ beta?: boolean }>`
   display: flex;
   justify-content: center;
   text-align: center;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 600;
   width: 100%;
   color: ${({ theme }) => theme.INTERACTIVE_NORMAL};
@@ -134,14 +136,18 @@ const StyledAlertIcon = styled(IoAlertCircleSharp)`
 `;
 
 export const Sidebar: React.FC = () => {
-  const { json, settings, dispatch } = useConfig();
-  const router = useRouter();
+  const getJson = useConfig((state) => state.getJson);
+  const updateSetting = useConfig((state) => state.updateSetting);
+
+  const { expand, performance, layout } = useConfig((state) => state.settings);
+  const { push } = useRouter();
   const [uploadVisible, setUploadVisible] = React.useState(false);
   const [clearVisible, setClearVisible] = React.useState(false);
+  const [shareVisible, setShareVisible] = React.useState(false);
 
   const handleSave = () => {
     const a = document.createElement("a");
-    const file = new Blob([json], { type: "text/plain" });
+    const file = new Blob([getJson()], { type: "text/plain" });
 
     a.href = window.URL.createObjectURL(file);
     a.download = "jsonvisio.json";
@@ -149,12 +155,12 @@ export const Sidebar: React.FC = () => {
   };
 
   const toggleExpandCollapse = () => {
-    dispatch({ type: ConfigActionType.TOGGLE_EXPAND });
-    toast(`${settings.expand ? "Collapsed" : "Expanded"} nodes.`);
+    updateSetting("expand", !expand);
+    toast(`${expand ? "Collapsed" : "Expanded"} nodes.`);
   };
 
   const togglePerformance = () => {
-    const toastMsg = settings.performance
+    const toastMsg = performance
       ? "Disabled Performance Mode\nSearch Node & Save Image enabled."
       : "Enabled Performance Mode\nSearch Node & Save Image disabled.";
 
@@ -163,14 +169,19 @@ export const Sidebar: React.FC = () => {
       duration: 3000,
     });
 
-    dispatch({ type: ConfigActionType.TOGGLE_PERFORMANCE });
+    updateSetting("performance", !performance);
+  };
+
+  const toggleLayout = () => {
+    const nextLayout = getNextLayout(layout);
+    updateSetting("layout", nextLayout);
   };
 
   return (
     <StyledSidebar>
       <StyledTopWrapper>
         <Link passHref href="/">
-          <StyledElement onClick={() => router.push("/")}>
+          <StyledElement onClick={() => push("/")}>
             <StyledLogo>
               <StyledText>J</StyledText>
               <StyledText secondary>V</StyledText>
@@ -183,23 +194,25 @@ export const Sidebar: React.FC = () => {
           </StyledElement>
         </Tooltip>
         <Tooltip title="Rotate Layout">
-          <StyledElement
-            onClick={() => dispatch({ type: ConfigActionType.TOGGLE_LAYOUT })}
-          >
-            <StyledFlowIcon rotate={rotateLayout(settings.layout)} />
+          <StyledElement onClick={toggleLayout}>
+            <StyledFlowIcon rotate={rotateLayout(layout)} />
           </StyledElement>
         </Tooltip>
-        <Tooltip title={settings.expand ? "Shrink Nodes" : "Expand Nodes"}>
+        <Tooltip title={expand ? "Shrink Nodes" : "Expand Nodes"}>
           <StyledElement
             title="Toggle Expand/Collapse"
             onClick={toggleExpandCollapse}
           >
-            {settings.expand ? <CgArrowsMergeAltH /> : <CgArrowsShrinkH />}
+            {expand ? <CgArrowsMergeAltH /> : <CgArrowsShrinkH />}
           </StyledElement>
         </Tooltip>
-        <Tooltip title="Clear JSON">
-          <StyledElement onClick={() => setClearVisible(true)}>
-            <AiOutlineDelete />
+        <Tooltip
+          title={`${
+            performance ? "Disable" : "Enable"
+          } Performance Mode (Beta)`}
+        >
+          <StyledElement onClick={togglePerformance} beta>
+            <CgPerformance color={performance ? "#0073FF" : undefined} />
           </StyledElement>
         </Tooltip>
         <Tooltip title="Save JSON">
@@ -207,15 +220,14 @@ export const Sidebar: React.FC = () => {
             <AiOutlineSave />
           </StyledElement>
         </Tooltip>
-        <Tooltip
-          title={`${
-            settings.performance ? "Disable" : "Enable"
-          } Performance Mode (Beta)`}
-        >
-          <StyledElement onClick={togglePerformance} beta>
-            <CgPerformance
-              color={settings.performance ? "#0073FF" : undefined}
-            />
+        <Tooltip title="Clear JSON">
+          <StyledElement onClick={() => setClearVisible(true)}>
+            <AiOutlineDelete />
+          </StyledElement>
+        </Tooltip>
+        <Tooltip title="Share">
+          <StyledElement onClick={() => setShareVisible(true)}>
+            <AiOutlineLink />
           </StyledElement>
         </Tooltip>
       </StyledTopWrapper>
@@ -235,15 +247,16 @@ export const Sidebar: React.FC = () => {
           </Link>
         </StyledElement>
         <StyledElement>
-          <Link href="https://www.patreon.com/aykutsarac">
-            <a aria-label="Patreon" rel="me" target="_blank">
-              <RiPatreonFill />
+          <Link href="https://github.com/sponsors/AykutSarac">
+            <a aria-label="GitHub Sponsors" rel="me" target="_blank">
+              <HiHeart />
             </a>
           </Link>
         </StyledElement>
       </StyledBottomWrapper>
       <ImportModal visible={uploadVisible} setVisible={setUploadVisible} />
       <ClearModal visible={clearVisible} setVisible={setClearVisible} />
+      <ShareModal visible={shareVisible} setVisible={setShareVisible} />
     </StyledSidebar>
   );
 };

@@ -5,17 +5,17 @@ const appearAnimation = keyframes`
   to { transform: scale(1); opacity: 1; };
 `;
 
-export const ModalWrapper = styled.div<{ visible: boolean }>`
+export const ModalWrapper = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
   width: 100%;
-  display: ${({ visible }) => (visible ? "flex" : "none")};
+  display: flex;
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.85);
-  z-index: 6;
+  z-index: 36;
 
   * {
     box-sizing: border-box;
@@ -24,8 +24,10 @@ export const ModalWrapper = styled.div<{ visible: boolean }>`
 
 export const ModalInnerWrapper = styled.div`
   min-width: 440px;
+  max-width: 490px;
   width: fit-content;
   animation: ${appearAnimation} 220ms ease-in-out;
+  line-height: 20px;
 `;
 
 export const Title = styled.h2`
@@ -44,7 +46,7 @@ export const ContentWrapper = styled.div`
   color: ${({ theme }) => theme.TEXT_NORMAL};
   background: ${({ theme }) => theme.MODAL_BACKGROUND};
   padding: 16px;
-  overflow: hidden scroll;
+  overflow: hidden auto;
 `;
 
 export const ControlsWrapper = styled.div`

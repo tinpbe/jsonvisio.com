@@ -1,6 +1,14 @@
 import { Button } from "src/components/Button";
 import styled from "styled-components";
 
+export const StyledImageWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export const StyledHome = styled.div`
   display: flex;
   flex-direction: column;
@@ -51,7 +59,7 @@ export const StyledHeroSection = styled.section`
   justify-content: center;
   align-items: center;
   gap: 1.5em;
-  min-height: 45vh;
+  min-height: 40vh;
   padding: 0 3%;
 `;
 
@@ -114,6 +122,24 @@ export const StyledButton = styled(Button)`
   }
 `;
 
+export const StyledSponsorButton = styled(StyledButton)`
+  background: transparent;
+  border: 1px solid #ee3d48;
+  transition: all 200ms;
+
+  svg {
+    color: #ee3d48;
+  }
+
+  &:hover {
+    background: #ee3d48;
+
+    svg {
+      color: white;
+    }
+  }
+`;
+
 export const StyledFeaturesSection = styled.section`
   display: flex;
   max-width: 85%;
@@ -148,7 +174,19 @@ export const StyledCardDescription = styled.p`
   font-size: 0.875rem;
 `;
 
-export const StyledGitHubSection = styled.section`
+export const StyledIframge = styled.iframe`
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  border: 2px solid ${({ theme }) => theme.INTERACTIVE_NORMAL};
+  border-radius: 6px;
+
+  @media only screen and (min-width: 768px) {
+    min-height: 384px;
+  }
+`;
+
+export const StyledSection = styled.section<{ reverse?: boolean }>`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -163,7 +201,7 @@ export const StyledGitHubSection = styled.section`
   }
 
   @media only screen and (max-width: 768px) {
-    flex-direction: column-reverse;
+    flex-direction: ${({ reverse }) => (reverse ? "column-reverse" : "column")};
     max-width: 80%;
   }
 `;
@@ -211,6 +249,22 @@ export const StyledSponsorSection = styled.section`
   }
 `;
 
+export const StyledEmbedSection = styled.section`
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: center;
+  align-items: center;
+  max-width: 85%;
+  margin: 0 auto;
+  gap: 2rem;
+  line-height: 1.5;
+  padding: 60px 3%;
+
+  @media only screen and (max-width: 768px) {
+    max-width: 80%;
+  }
+`;
+
 export const StyledPreviewSection = styled.section`
   display: flex;
   flex-direction: row;
@@ -226,7 +280,9 @@ export const StyledPreviewSection = styled.section`
 `;
 
 export const StyledImage = styled.img`
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.6));
 `;
 
